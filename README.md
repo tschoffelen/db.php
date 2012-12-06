@@ -22,6 +22,14 @@ Usage:
 $db->select($table,$where=array(),$limit=false,$order=false,$where_mode="AND")
 ```
 
+Arguments:
+
+* string `$table` - name of the table to select from
+* array/string `$where` - array or string holding the filters/'WHERE' clause for the query
+* int/string `$limit` - integer or string holding the 'LIMIT' clause
+* string `$order` - string holding the 'ORDER BY' clause
+* string `$where_mode` - whetether to add an 'AND' or 'OR' after each item in the `$where` array, defaults to `AND`
+
 Example: 
 
 ```
