@@ -131,3 +131,7 @@ $db->delete(
 	)
 );
 ```
+
+
+## Send me a coffee
+Like my work? [Consider giving a small donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=X8Y8GRHBU7V8N). 
