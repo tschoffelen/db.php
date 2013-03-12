@@ -19,7 +19,7 @@
             $this->db = $db;
         }
 
-        public function select($table,$where=array(),$limit=false,$order=false,$where_mode="AND"){
+        public function select($table,$where=array(),$limit=false,$order=false,$where_mode="AND",$print_query=false){
             $this->result = null;
             $this->sql = null;
             $query = 'SELECT * FROM `'.$table.'`';
@@ -28,7 +28,11 @@
                 if(is_array($where)){
                     $nr = 0;
                     foreach($where as $k => $v){
+                        if(substr($v,0,2) == 'in'){
+                        $query .= ' `'.$k."`  ".mysql_real_escape_string($v);
+                        } else {
                         $query .= ' `'.$k."`='".mysql_real_escape_string($v)."'";
+                        }
                         $nr++;
                         if($nr != count($where)){ $query .= ' '.$where_mode; }
                     }
@@ -41,6 +45,9 @@
             }
             if($limit){
                 $query .= ' LIMIT '.$limit;
+            }
+            if($print_query){
+            echo $query;
             }
             return $this->query($query);
         }
