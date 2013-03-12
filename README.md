@@ -19,7 +19,7 @@ $db = new db($database_name, $username, $password, $host); // $host is optional 
 Usage: 
 
 ```
-$db->select($table,$where=array(),$limit=false,$order=false,$where_mode="AND")
+$db->select($table,$where=array(),$limit=false,$order=false,$where_mode="AND",$print_query=false)
 ```
 
 Arguments:
@@ -29,6 +29,7 @@ Arguments:
 * int/string `$limit` - integer or string holding the 'LIMIT' clause
 * string `$order` - string holding the 'ORDER BY' clause
 * string `$where_mode` - whetether to add an 'AND' or 'OR' after each item in the `$where` array, defaults to `AND`
+* bool `$print_query` - print sql query, defaults false
 
 Example: 
 
@@ -36,6 +37,13 @@ Example:
 // get the first 10 candy bars that are sweet, and order them by amount
 $db->select('candy', array('sweet' => 1, 'spicy' => 0), 10, 'amount DESC');
 ```
+
+```
+// get the ids 1, 2,5,9  from products
+$db->select('products', array('id' => 'in (1,2,5,9)'), false, false,'OR');
+```
+
+
 
 #### Reading results
 
