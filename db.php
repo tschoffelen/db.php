@@ -29,10 +29,12 @@
                     $nr = 0;
                     foreach($where as $k => $v){
                         if(substr($v,0,2) == 'in'){
-                        $query .= ' `'.$k."`  ".mysql_real_escape_string($v);
-                        } else {
-                        $query .= ' `'.$k."`='".mysql_real_escape_string($v)."'";
-                        }
+                            $query .= ' `'.$k."`  ".mysql_real_escape_string($v);
+                        }elseif(!is_integer($k)){
+                            $query .= ' `'.$k."`='".mysql_real_escape_string($v)."'";
+                        }else{
+                            $query .= ' '.$v;	
+                        } 
                         $nr++;
                         if($nr != count($where)){ $query .= ' '.$where_mode; }
                     }
