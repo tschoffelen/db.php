@@ -1,15 +1,15 @@
-db.php
-====
+Database.php
+============
 
-db.php is a simple PHP class for doing standard MySQL actions, such as selecting, inserting, updating and deleting database rows. It also includes some nice functionality, like auto-escaping to protect your database from malicious code and automatic serializing of arrays.
+Database.php is a simple PHP class for doing standard MySQL actions, such as selecting, inserting, updating and deleting database rows. It also includes some nice functionality, like auto-escaping to protect your database from malicious code and automatic serializing of arrays.
 
 ## Usage
 
 ### Initiating 
-**Initiate a database connection using by creating a `new db()` object.**
+**Initiate a database connection using by creating a `new Database()` object.**
 
 ```
-require('database.php');
+require('Database.php');
 $db = new Database($database_name, $username, $password, $host); // $host is optional and defaults to 'localhost'
 ```
 
