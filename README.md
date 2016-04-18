@@ -20,7 +20,7 @@ $db = new Database($database_name, $username, $password, $host); // $host is opt
 Usage: 
 
 ```
-$db->select($table,$where=array(),$limit=false,$order=false,$where_mode="AND",$print_query=false)
+$db->select($table, $where, $limit, $order, $where_mode, $select_fields)
 ```
 
 Arguments:
@@ -30,7 +30,7 @@ Arguments:
 * int/string `$limit` - integer or string holding the 'LIMIT' clause
 * string `$order` - string holding the 'ORDER BY' clause
 * string `$where_mode` - whetether to add an 'AND' or 'OR' after each item in the `$where` array, defaults to `AND`
-* bool `$print_query` - print sql query, defaults false
+* string `$select_fields` - the fields to select (SELECT <$select_fields> FROM ...), defaults to `*`
 
 Example: 
 
@@ -66,9 +66,8 @@ echo $db->select('candy', array('sweet' => 1), 10)->count();
 
 There are a few other methods available for queries that might come in handy:
 
-* `$db->sql()` returns the sql query that was generated
+* `$db->sql()` returns the sql query that was last executed
 
-* `$db->result_raw` returns the direct output `mysql_query()`
 
 ### Insert
 **Insert data into a database table**
