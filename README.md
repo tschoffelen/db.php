@@ -9,7 +9,8 @@ Database.php is a simple PHP class for doing standard MySQL actions, such as sel
 **Initiate a database connection using by creating a `new Database()` object.**
 
 ```
-require('Database.php');
+require_once('Database.php');
+
 $db = new Database($database_name, $username, $password, $host); // $host is optional and defaults to 'localhost'
 ```
 
