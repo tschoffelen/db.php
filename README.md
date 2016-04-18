@@ -9,8 +9,8 @@ db.php is a simple PHP class for doing standard MySQL actions, such as selecting
 **Initiate a database connection using by creating a `new db()` object.**
 
 ```
-require('db.php');
-$db = new db($database_name, $username, $password, $host); // $host is optional and defaults to 'localhost'
+require('database.php');
+$db = new Database($database_name, $username, $password, $host); // $host is optional and defaults to 'localhost'
 ```
 
 ### Select
@@ -140,6 +140,26 @@ $db->delete(
 );
 ```
 
+### Singleton
+**Access the database instance outside the global scope after initializing it**
 
-## Send me a coffee
-Like my work? [Consider giving a small donation](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=X8Y8GRHBU7V8N). 
+Usage:
+
+```
+$my_db = Database::instance();
+```
+
+Example:
+
+```
+// Global scope
+$db = new Database($database_name, $username, $password, $host);
+
+// Function scope
+function something(){
+    // We could simply use `global $db;`, but using globals is bad. Instad we can do this:
+    $db = Database::instance();
+    
+    // And now we have access to $db inside the function
+}
+```
