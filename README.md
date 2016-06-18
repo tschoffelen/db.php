@@ -5,7 +5,7 @@ Database.php is a simple PHP class for doing standard MySQL actions, such as sel
 
 ## Usage
 
-### Initiating 
+### Initiating
 **Initiate a database connection using by creating a `new Database()` object.**
 
 ```
@@ -17,7 +17,7 @@ $db = new Database($database_name, $username, $password, $host); // $host is opt
 ### Select
 **Select rows from a database table**
 
-Usage: 
+Usage:
 
 ```
 $db->select($table, $where, $limit, $order, $where_mode, $select_fields)
@@ -29,10 +29,10 @@ Arguments:
 * array/string `$where` - array or string holding the filters/'WHERE' clause for the query
 * int/string `$limit` - integer or string holding the 'LIMIT' clause
 * string `$order` - string holding the 'ORDER BY' clause
-* string `$where_mode` - whetether to add an 'AND' or 'OR' after each item in the `$where` array, defaults to `AND`
+* string `$where_mode` - whether to add an 'AND' or 'OR' after each item in the `$where` array, defaults to `AND`
 * string `$select_fields` - the fields to select (SELECT <$select_fields> FROM ...), defaults to `*`
 
-Example: 
+Example:
 
 ```
 // get the first 10 candy bars that are sweet, and order them by amount
@@ -72,17 +72,17 @@ There are a few other methods available for queries that might come in handy:
 ### Insert
 **Insert data into a database table**
 
-Usage: 
+Usage:
 
 ```
 $db->insert($table, $fields=array())
 ```
 
-Example: 
+Example:
 
 ```
 $db->insert(
-	'candy', 
+	'candy',
 	array(
 		'name' => 'Kitkat original',
 		'sweet' => 1,
@@ -93,28 +93,28 @@ $db->insert(
 );
 ```
 
-**Tip!** You can call `$db->id()` immeadiatly after a `$db->insert()` call to get the ID of the last inserted row.
+**Tip!** You can call `$db->id()` immeadiately after a `$db->insert()` call to get the ID of the last inserted row.
 
 ### Update
 **Update one or more rows of a database table**
 
-Usage: 
+Usage:
 
 ```
 $db->update($table, $fields=array(), $where=array())
 ```
 
-Example: 
+Example:
 
 ```
-// set amount per pack to 5 for all Kitcats
+// set amount per pack to 5 for all Kitkats
 $db->update(
-	'candy', 
+	'candy',
 	array( // fields to be updated
-		'amount_per_pack' => 5 
-	), 
+		'amount_per_pack' => 5
+	),
 	array( // 'WHERE' clause
-		'brand' => 'Kitkat' 
+		'brand' => 'Kitkat'
 	)
 );
 ```
@@ -122,20 +122,20 @@ $db->update(
 ### Delete
 **Remove one or more rows from a database table**
 
-Usage: 
+Usage:
 
 ```
 $db->delete($table, $where=array())
 ```
 
-Example: 
+Example:
 
 ```
 // delete all Kitkat candy
 $db->delete(
-	'candy', 
+	'candy',
 	array( // 'WHERE' clause
-		'brand' => 'Kitkat' 
+		'brand' => 'Kitkat'
 	)
 );
 ```
@@ -157,9 +157,9 @@ $db = new Database($database_name, $username, $password, $host);
 
 // Function scope
 function something(){
-    // We could simply use `global $db;`, but using globals is bad. Instad we can do this:
+    // We could simply use `global $db;`, but using globals is bad. Instead we can do this:
     $db = Database::instance();
-    
+
     // And now we have access to $db inside the function
 }
 ```
