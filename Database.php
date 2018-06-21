@@ -43,6 +43,7 @@ class Database
 
         $this->database_name = $database_name;
         $this->mysql = mysqli_connect($host, $username, $password, $database_name);
+        $this->mysql->set_charset('utf8');
 
         if (!$this->mysql) {
             throw new DatabaseException('Database connection error: ' . mysqli_connect_error());
