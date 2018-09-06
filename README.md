@@ -52,8 +52,8 @@ Reading the results can be done with the following functions:
 
 * `$db->count()` returns the number of selected rows, equal to `mysql_num_rows()`
 
-* `$db->row()` returns the first row that matches the query as an array
 * `$db->result()` returns all matches rows as an array containing row objects
+* `$db->row()` returns the first row that matches the query as an object
 
 * `$db->result_array()` returns all matches rows as an array containing row arrays
 * `$db->row_array()` returns the first row that matches the query as an object (stdClass)
