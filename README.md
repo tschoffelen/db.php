@@ -36,12 +36,12 @@ Example:
 
 ```
 // get the first 10 candy bars that are sweet, and order them by amount
-$db->select('candy', array('sweet' => 1, 'spicy' => 0), 10, 'amount DESC');
+$db->select('candy', ['sweet' => 1, 'spicy' => 0], 10, 'amount DESC');
 ```
 
 ```
 // get the ids 1, 2,5,9  from products
-$db->select('products', array('id' => 'in (1,2,5,9)'), false, false,'OR');
+$db->select('products', ['id' => 'in (1,2,5,9)'], false, false,'OR');
 ```
 
 
@@ -61,7 +61,7 @@ Reading the results can be done with the following functions:
 Please note that you can call any of these functions also directly after the `$db->select()` call, like shown below:
 
 ```
-echo $db->select('candy', array('sweet' => 1), 10)->count();
+echo $db->select('candy', ['sweet' => 1], 10)->count();
 ```
 
 There are a few other methods available for queries that might come in handy:
@@ -75,21 +75,20 @@ There are a few other methods available for queries that might come in handy:
 Usage:
 
 ```
-$db->insert($table, $fields=array())
+$db->insert($table, $fields=[])
 ```
 
 Example:
 
 ```
 $db->insert(
-	'candy',
-	array(
+	'candy', [
 		'name' => 'Kitkat original',
 		'sweet' => 1,
 		'spicey' => 0,
 		'brand' => 'Kitkat',
 		'amount_per_pack' => 4
-	)
+	]
 );
 ```
 
@@ -101,7 +100,7 @@ $db->insert(
 Usage:
 
 ```
-$db->update($table, $fields=array(), $where=array())
+$db->update($table, $fields=[], $where=[])
 ```
 
 Example:
@@ -109,13 +108,13 @@ Example:
 ```
 // set amount per pack to 5 for all Kitkats
 $db->update(
-	'candy',
-	array( // fields to be updated
+	'candy', [
+		// fields to be updated
 		'amount_per_pack' => 5
-	),
-	array( // 'WHERE' clause
+	], [
+		// 'WHERE' clause
 		'brand' => 'Kitkat'
-	)
+	]
 );
 ```
 
@@ -125,7 +124,7 @@ $db->update(
 Usage:
 
 ```
-$db->delete($table, $where=array())
+$db->delete($table, $where=[])
 ```
 
 Example:
@@ -133,10 +132,10 @@ Example:
 ```
 // delete all Kitkat candy
 $db->delete(
-	'candy',
-	array( // 'WHERE' clause
+	'candy', [
+		// 'WHERE' clause
 		'brand' => 'Kitkat'
-	)
+	]
 );
 ```
 
@@ -156,7 +155,7 @@ Example:
 $db = new Database($database_name, $username, $password, $host);
 
 // Function scope
-function something(){
+function something() {
     // We could simply use `global $db;`, but using globals is bad. Instead we can do this:
     $db = Database::instance();
 
