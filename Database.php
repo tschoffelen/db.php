@@ -371,7 +371,11 @@ class Database
             if (is_object($value) || is_array($value) || is_bool($value)) {
                 $value = serialize($value);
             }
-            $query .= " '" . $this->escape($value) . "'";
+            if($value === null) {
+                $query .= ' NULL';
+            } else {
+                $query .= ' \'' . $this->escape($value) . '\'';
+            }
             $nr++;
             if ($nr != count($array)) {
                 $query .= ',';
@@ -457,7 +461,11 @@ class Database
                 if (is_object($v) || is_array($v) || is_bool($v)) {
                     $v = serialize($v);
                 }
-                $query .= ' `' . $k . "`='" . $this->escape($v) . "'";
+                if($value === null) {
+                    $query .= ' `' . $key . "`=NULL";
+                } else {
+                    $query .= ' `' . $key . "`='" . $this->escape($value) . "'";
+                }
                 $nr++;
                 if ($nr != count($fields)) {
                     $query .= ',';
