@@ -56,7 +56,7 @@ Reading the results can be done with the following functions:
 * `$db->row()` returns the first row that matches the query as an object
 
 * `$db->result_array()` returns all matches rows as an array containing row arrays
-* `$db->row_array()` returns the first row that matches the query as an object (stdClass)
+* `$db->row_array()` returns the first row that matches the query as an array
 
 Please note that you can call any of these functions also directly after the `$db->select()` call, like shown below:
 
