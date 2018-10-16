@@ -461,10 +461,10 @@ class Database
                 if (is_object($v) || is_array($v) || is_bool($v)) {
                     $v = serialize($v);
                 }
-                if($value === null) {
-                    $query .= ' `' . $key . "`=NULL";
+                if($v === null) {
+                    $query .= ' `' . $k . "`=NULL";
                 } else {
-                    $query .= ' `' . $key . "`='" . $this->escape($value) . "'";
+                    $query .= ' `' . $k . "`='" . $this->escape($v) . "'";
                 }
                 $nr++;
                 if ($nr != count($fields)) {
