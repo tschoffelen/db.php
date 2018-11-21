@@ -162,3 +162,21 @@ function something() {
     // And now we have access to $db inside the function
 }
 ```
+
+### Make Sure
+**Your MySQL Server is well configured as you could encountered some errors with (very) long queries**
+
+Error (same in browser, cron or ssh):
+
+```
+Fatal error: Uncaught DatabaseException: Database error: MySQL server has gone away
+```
+
+You need to verify that wait_timeout & max_allowed_packet are sufficients for your needs:
+
+```
+cat /etc/my.cnf | grep wait_timeout
+cat /etc/my.cnf | grep max_allowed_packet
+```
+
+If you can't access to those variables (ex. shared hosting) and/or can't ask for them to be modified, a possible workaround would be to limit the size of your queries or divide them.
