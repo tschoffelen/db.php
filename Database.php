@@ -587,7 +587,7 @@ class Database
     private function clean($str)
     {
         if (is_string($str)) {
-            if (!mb_detect_encoding($str, 'UTF-8', TRUE)) {
+            if (!mb_detect_encoding($str, 'UTF-8', true)) {
                 $str = utf8_encode($str);
             }
         }
