@@ -1,7 +1,6 @@
 # Database.php
 
 [![Build Status](https://travis-ci.com/tschoffelen/db.php.svg?branch=master)](https://travis-ci.com/tschoffelen/db.php)
-
 [![codecov](https://codecov.io/gh/tschoffelen/db.php/branch/master/graph/badge.svg)](https://codecov.io/gh/tschoffelen/db.php)
 
 
