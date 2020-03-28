@@ -37,7 +37,7 @@ class Database
     /**
      * @var string Database name
      */
-    private $database_name;
+    public $database_name;
 
     /**
      * @var Database Singleton helper
@@ -82,13 +82,14 @@ class Database
      * @param string $username
      * @param string $password
      * @param string $host
+     * @param null $mock
      * @return Database
      * @throws DatabaseException
      */
-    final public static function instance($database_name = null, $username = null, $password = null, $host = 'localhost')
+    final public static function instance($database_name = null, $username = null, $password = null, $host = 'localhost', $mock = null)
     {
         if(!isset(self::$instance)) {
-            self::$instance = new Database($database_name, $username, $password, $host);
+            self::$instance = new Database($database_name, $username, $password, $host, $mock);
         }
 
         return self::$instance;
