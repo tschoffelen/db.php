@@ -7,7 +7,7 @@ Database.php is a simple PHP class for doing standard MySQL actions, such as sel
 ### Initiating
 **Initiate a database connection using by creating a `new Database()` object.**
 
-```
+```php
 require_once('Database.php');
 
 $db = new Database($database_name, $username, $password, $host); // $host is optional and defaults to 'localhost'
@@ -18,7 +18,7 @@ $db = new Database($database_name, $username, $password, $host); // $host is opt
 
 Usage:
 
-```
+```php
 $db->select($table, $where, $limit, $order, $where_mode, $select_fields)
 ```
 
@@ -33,7 +33,7 @@ Arguments:
 
 Example:
 
-```
+```php
 // get the first 10 candy bars that are sweet, and order them by amount
 $db->select('candy', ['sweet' => 1, 'spicy' => 0], 10, 'amount DESC');
 ```
@@ -59,7 +59,7 @@ Reading the results can be done with the following functions:
 
 Please note that you can call any of these functions also directly after the `$db->select()` call, like shown below:
 
-```
+```php
 echo $db->select('candy', ['sweet' => 1], 10)->count();
 ```
 
@@ -73,13 +73,13 @@ There are a few other methods available for queries that might come in handy:
 
 Usage:
 
-```
+```php
 $db->insert($table, $fields=[])
 ```
 
 Example:
 
-```
+```php
 $db->insert(
 	'candy', [
 		'name' => 'Kitkat original',
@@ -98,13 +98,13 @@ $db->insert(
 
 Usage:
 
-```
+```php
 $db->update($table, $fields=[], $where=[])
 ```
 
 Example:
 
-```
+```php
 // set amount per pack to 5 for all Kitkats
 $db->update(
 	'candy', [
@@ -122,13 +122,13 @@ $db->update(
 
 Usage:
 
-```
+```php
 $db->delete($table, $where=[])
 ```
 
 Example:
 
-```
+```php
 // delete all Kitkat candy
 $db->delete(
 	'candy', [
@@ -143,13 +143,13 @@ $db->delete(
 
 Usage:
 
-```
+```php
 $my_db = Database::instance();
 ```
 
 Example:
 
-```
+```php
 // Global scope
 $db = new Database($database_name, $username, $password, $host);
 
