@@ -1,5 +1,10 @@
 # Database.php
 
+[![Build Status](https://travis-ci.com/tschoffelen/db.php.svg?branch=master)](https://travis-ci.com/tschoffelen/db.php)
+
+[![codecov](https://codecov.io/gh/tschoffelen/db.php/branch/master/graph/badge.svg)](https://codecov.io/gh/tschoffelen/db.php)
+
+
 Database.php is a simple PHP class for doing standard MySQL actions, such as selecting, inserting, updating and deleting database rows. It also includes some nice functionality, like auto-escaping to protect your database from malicious code and automatic serializing of arrays.
 
 ## Usage
