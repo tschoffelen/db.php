@@ -6,13 +6,22 @@
   "authors": [
     {
       "name": "Thomas Schoffelen",
-      "email": "me@thomasschoffelen.com"
+      "email": "thomas@schof.co"
     }
   ],
   "autoload": {
     "classmap": [
-      "Database.php"
+      "src/Database.php"
     ]
   },
-  "require": {}
+  "require": {
+    "php": ">=7.0",
+    "ext-mysqli": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.0"
+  },
+  "scripts": {
+    "test": "phpunit"
+  }
 }

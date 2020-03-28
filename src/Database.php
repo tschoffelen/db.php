@@ -14,11 +14,34 @@ class DatabaseException extends Exception
 class Database
 {
 
+    /**
+     * @var strting Last executed SQL query
+     */
     private $sql;
+
+    /**
+     * @var false|mysqli Database connection
+     */
     private $mysql;
+
+    /**
+     * @var mixed Last result
+     */
     private $result;
+
+    /**
+     * @var mixed[] Result rows
+     */
     private $result_rows;
+
+    /**
+     * @var string Database name
+     */
     private $database_name;
+
+    /**
+     * @var Database Singleton helper
+     */
     private static $instance;
 
     /**
@@ -26,7 +49,7 @@ class Database
      *
      * @var array
      */
-    static $queries = array();
+    static $queries = [];
 
     /**
      * Database() constructor
@@ -35,19 +58,21 @@ class Database
      * @param string $username
      * @param string $password
      * @param string $host
+     * @param mysqli $mock
      * @throws DatabaseException
      */
-    function __construct($database_name, $username, $password, $host = 'localhost')
+    function __construct($database_name, $username, $password, $host = 'localhost', $mock = null)
     {
         self::$instance = $this;
 
         $this->database_name = $database_name;
-        $this->mysql = mysqli_connect($host, $username, $password, $database_name);
-        $this->mysql->set_charset('utf8');
+        $this->mysql = $mock ?: new mysqli($host, $username, $password, $database_name);
 
-        if (!$this->mysql) {
-            throw new DatabaseException('Database connection error: ' . mysqli_connect_error());
+        if(!$this->mysql || $this->mysql->connect_errno) {
+            throw new DatabaseException('Database connection error: ' . $this->mysql->connect_error);
         }
+
+        $this->mysql->set_charset('utf8');
     }
 
     /**
@@ -58,10 +83,11 @@ class Database
      * @param string $password
      * @param string $host
      * @return Database
+     * @throws DatabaseException
      */
     final public static function instance($database_name = null, $username = null, $password = null, $host = 'localhost')
     {
-        if (!isset(self::$instance)) {
+        if(!isset(self::$instance)) {
             self::$instance = new Database($database_name, $username, $password, $host);
         }
 
@@ -72,7 +98,7 @@ class Database
      * Helper for throwing exceptions
      *
      * @param $error
-     * @throws Exception
+     * @throws DatabaseException
      */
     private function _error($error)
     {
@@ -85,34 +111,35 @@ class Database
      * @param mixed $where
      * @param string $where_mode
      * @return string
-     * @throws Exception
+     * @throws DatabaseException
      */
     public function process_where($where, $where_mode = 'AND')
     {
         $query = '';
-        if (is_array($where)) {
+        if(is_array($where)) {
             $num = 0;
             $where_count = count($where);
-            foreach ($where as $k => $v) {
-                if (is_array($v)) {
-                    $w = array_keys($v);
-                    if (reset($w) != 0) {
-                        throw new Exception('Can not handle associative arrays');
+            foreach($where as $key => $value) {
+                if(is_array($value)) {
+                    $array_keys = array_keys($value);
+                    if(reset($array_keys) != 0) {
+                        throw new DatabaseException('Can not handle associative arrays');
                     }
-                    $query .= " `" . $k . "` IN (" . $this->join_array($v) . ")";
-                } elseif (!is_integer($k)) {
-                    $query .= ' `' . $k . "`='" . $this->escape($v) . "'";
+                    $query .= " `" . $key . "` IN (" . $this->join_array($value) . ")";
+                } elseif(!is_integer($key)) {
+                    $query .= ' `' . $key . "`='" . $this->escape($value) . "'";
                 } else {
-                    $query .= ' ' . $v;
+                    $query .= ' ' . $value;
                 }
                 $num++;
-                if ($num != $where_count) {
+                if($num != $where_count) {
                     $query .= ' ' . $where_mode;
                 }
             }
         } else {
             $query .= ' ' . $where;
         }
+
         return $query;
     }
 
@@ -128,29 +155,30 @@ class Database
      * @return Database
      * @throws DatabaseException
      */
-    public function select($table, $where = array(), $limit = false, $order = false, $where_mode = "AND", $select_fields = '*')
+    public function select($table, $where = [], $limit = false, $order = false, $where_mode = "AND", $select_fields = '*')
     {
         $this->result = null;
         $this->sql = null;
 
-        if (is_array($select_fields)) {
+        if(is_array($select_fields)) {
             $fields = '';
-            foreach ($select_fields as $s) {
-                $fields .= '`' . $s . '`, ';
+            foreach($select_fields as $field) {
+                $fields .= '`' . $field . '`, ';
             }
             $select_fields = rtrim($fields, ', ');
         }
 
         $query = 'SELECT ' . $select_fields . ' FROM `' . $table . '`';
-        if (!empty($where)) {
+        if(!empty($where)) {
             $query .= ' WHERE' . $this->process_where($where, $where_mode);
         }
-        if ($order) {
+        if($order) {
             $query .= ' ORDER BY ' . $order;
         }
-        if ($limit) {
+        if($limit) {
             $query .= ' LIMIT ' . $limit;
         }
+
         return $this->query($query);
     }
 
@@ -158,8 +186,8 @@ class Database
      * Perform a query
      *
      * @param string $query
-     * @return $this|Database
-     * @throws Exception
+     * @return self
+     * @throws DatabaseException
      */
     public function query($query)
     {
@@ -167,11 +195,12 @@ class Database
         $this->sql = $query;
 
         $this->result_rows = null;
-        $this->result = mysqli_query($this->mysql, $query);
+        $this->result = $this->mysql->query($query);
 
-        if (mysqli_error($this->mysql) != '') {
-            $this->_error(mysqli_error($this->mysql));
+        if($this->mysql->error != '') {
+            $this->_error($this->mysql->error);
             $this->result = null;
+
             return $this;
         }
 
@@ -196,28 +225,29 @@ class Database
      */
     public function result($key_field = null)
     {
-        if (!$this->result_rows) {
-            $this->result_rows = array();
-            while ($row = mysqli_fetch_assoc($this->result)) {
+        if(!$this->result_rows) {
+            $this->result_rows = [];
+            while($row = mysqli_fetch_assoc($this->result)) {
                 $this->result_rows[] = $row;
             }
         }
 
-        $result = array();
+        $result = [];
         $index = 0;
 
-        foreach ($this->result_rows as $row) {
+        foreach($this->result_rows as $row) {
             $key = $index;
-            if (!empty($key_field) && isset($row[$key_field])) {
+            if(!empty($key_field) && isset($row[$key_field])) {
                 $key = $row[$key_field];
             }
             $result[$key] = new stdClass();
-            foreach ($row as $column => $value) {
+            foreach($row as $column => $value) {
                 $this->is_serialized($value, $value);
                 $result[$key]->{$column} = $this->clean($value);
             }
             $index++;
         }
+
         return $result;
     }
 
@@ -228,22 +258,23 @@ class Database
      */
     public function result_array()
     {
-        if (!$this->result_rows) {
-            $this->result_rows = array();
-            while ($row = mysqli_fetch_assoc($this->result)) {
+        if(!$this->result_rows) {
+            $this->result_rows = [];
+            while($row = mysqli_fetch_assoc($this->result)) {
                 $this->result_rows[] = $row;
             }
         }
-        $result = array();
-        $n = 0;
-        foreach ($this->result_rows as $row) {
-            $result[$n] = array();
-            foreach ($row as $k => $v) {
-                $this->is_serialized($v, $v);
-                $result[$n][$k] = $this->clean($v);
+        $result = [];
+        $index = 0;
+        foreach($this->result_rows as $row) {
+            $result[$index] = [];
+            foreach($row as $key => $value) {
+                $this->is_serialized($value, $value);
+                $result[$index][$key] = $this->clean($value);
             }
-            $n++;
+            $index++;
         }
+
         return $result;
     }
 
@@ -255,21 +286,22 @@ class Database
      */
     public function row($index = 0)
     {
-        if (!$this->result_rows) {
-            $this->result_rows = array();
-            while ($row = mysqli_fetch_assoc($this->result)) {
+        if(!$this->result_rows) {
+            $this->result_rows = [];
+            while($row = mysqli_fetch_assoc($this->result)) {
                 $this->result_rows[] = $row;
             }
         }
 
         $num = 0;
-        foreach ($this->result_rows as $column) {
-            if ($num == $index) {
+        foreach($this->result_rows as $column) {
+            if($num == $index) {
                 $row = new stdClass();
-                foreach ($column as $key => $value) {
+                foreach($column as $key => $value) {
                     $this->is_serialized($value, $value);
                     $row->{$key} = $this->clean($value);
                 }
+
                 return $row;
             }
             $num++;
@@ -286,27 +318,28 @@ class Database
      */
     public function row_array($index = 0)
     {
-        if (!$this->result_rows) {
-            $this->result_rows = array();
-            while ($row = mysqli_fetch_assoc($this->result)) {
+        if(!$this->result_rows) {
+            $this->result_rows = [];
+            while($row = mysqli_fetch_assoc($this->result)) {
                 $this->result_rows[] = $row;
             }
         }
 
         $num = 0;
-        foreach ($this->result_rows as $column) {
-            if ($num == $index) {
-                $row = array();
-                foreach ($column as $key => $value) {
+        foreach($this->result_rows as $column) {
+            if($num == $index) {
+                $row = [];
+                foreach($column as $key => $value) {
                     $this->is_serialized($value, $value);
                     $row[$key] = $this->clean($value);
                 }
+
                 return $row;
             }
             $num++;
         }
 
-        return array();
+        return [];
     }
 
     /**
@@ -316,9 +349,9 @@ class Database
      */
     public function count()
     {
-        if ($this->result) {
+        if($this->result) {
             return mysqli_num_rows($this->result);
-        } elseif (isset($this->result_rows)) {
+        } elseif(isset($this->result_rows)) {
             return count($this->result_rows);
         } else {
             return false;
@@ -334,14 +367,16 @@ class Database
      * @param bool $order
      * @param string $where_mode
      * @return mixed
+     * @throws DatabaseException
      */
-    public function num($table = null, $where = array(), $limit = false, $order = false, $where_mode = "AND")
+    public function num($table = null, $where = [], $limit = false, $order = false, $where_mode = "AND")
     {
-        if (!empty($table)) {
+        if(!empty($table)) {
             $this->select($table, $where, $limit, $order, $where_mode, 'COUNT(*)');
         }
 
         $res = $this->row();
+
         return $res->{'COUNT(*)'};
     }
 
@@ -353,7 +388,8 @@ class Database
      */
     function table_exists($name)
     {
-        $res = mysqli_query($this->mysql, "SELECT COUNT(*) AS count FROM information_schema.tables WHERE table_schema = '" . $this->escape($this->database_name) . "' AND table_name = '" . $this->escape($name) . "'");
+        $res = $this->mysql->query("SELECT COUNT(*) AS count FROM information_schema.tables WHERE table_schema = '" . $this->escape($this->database_name) . "' AND table_name = '" . $this->escape($name) . "'");
+
         return ($this->mysqli_result($res, 0) == 1);
     }
 
@@ -365,10 +401,10 @@ class Database
      */
     private function join_array($array)
     {
-        $nr = 0;
+        $number = 0;
         $query = '';
-        foreach ($array as $key => $value) {
-            if (is_object($value) || is_array($value) || is_bool($value)) {
+        foreach($array as $key => $value) {
+            if(is_object($value) || is_array($value) || is_bool($value)) {
                 $value = serialize($value);
             }
             if($value === null) {
@@ -376,11 +412,12 @@ class Database
             } else {
                 $query .= ' \'' . $this->escape($value) . '\'';
             }
-            $nr++;
-            if ($nr != count($array)) {
+            $number++;
+            if($number != count($array)) {
                 $query .= ',';
             }
         }
+
         return trim($query);
     }
 
@@ -396,7 +433,7 @@ class Database
      * @return bool|Database
      * @throws Exception
      */
-    function insert($table, $fields = array(), $appendix = false, $ret = false)
+    function insert($table, $fields = [], $appendix = false, $ret = false)
     {
         $this->result = null;
         $this->sql = null;
@@ -404,13 +441,13 @@ class Database
         $query = 'INSERT INTO';
         $query .= ' `' . $this->escape($table) . "`";
 
-        if (is_array($fields)) {
+        if(is_array($fields)) {
             $query .= ' (';
             $num = 0;
-            foreach ($fields as $key => $value) {
+            foreach($fields as $key => $value) {
                 $query .= ' `' . $key . '`';
                 $num++;
-                if ($num != count($fields)) {
+                if($num != count($fields)) {
                     $query .= ',';
                 }
             }
@@ -418,17 +455,18 @@ class Database
         } else {
             $query .= ' ' . $fields;
         }
-        if ($appendix) {
+        if($appendix) {
             $query .= ' ' . $appendix;
         }
-        if ($ret) {
+        if($ret) {
             return $query;
         }
         $this->sql = $query;
         $this->result = mysqli_query($this->mysql, $query);
-        if (mysqli_error($this->mysql) != '') {
+        if(mysqli_error($this->mysql) != '') {
             $this->_error(mysqli_error($this->mysql));
             $this->result = null;
+
             return false;
         } else {
             return $this;
@@ -446,48 +484,49 @@ class Database
      * @return $this|bool
      * @throws DatabaseException
      */
-    function update($table, $fields = array(), $where = array(), $limit = false, $order = false)
+    function update($table, $fields = [], $where = [], $limit = false, $order = false)
     {
-        if (empty($where)) {
+        if(empty($where)) {
             throw new DatabaseException('Where clause is empty for update method');
         }
 
         $this->result = null;
         $this->sql = null;
         $query = 'UPDATE `' . $table . '` SET';
-        if (is_array($fields)) {
-            $nr = 0;
-            foreach ($fields as $k => $v) {
-                if (is_object($v) || is_array($v) || is_bool($v)) {
-                    $v = serialize($v);
+        if(is_array($fields)) {
+            $number = 0;
+            foreach($fields as $key => $value) {
+                if(is_object($value) || is_array($value) || is_bool($value)) {
+                    $value = serialize($value);
                 }
-                if($v === null) {
-                    $query .= ' `' . $k . "`=NULL";
+                if($value === null) {
+                    $query .= ' `' . $key . "`=NULL";
                 } else {
-                    $query .= ' `' . $k . "`='" . $this->escape($v) . "'";
+                    $query .= ' `' . $key . "`='" . $this->escape($value) . "'";
                 }
-                $nr++;
-                if ($nr != count($fields)) {
+                $number++;
+                if($number != count($fields)) {
                     $query .= ',';
                 }
             }
         } else {
             $query .= ' ' . $fields;
         }
-        if (!empty($where)) {
+        if(!empty($where)) {
             $query .= ' WHERE' . $this->process_where($where);
         }
-        if ($order) {
+        if($order) {
             $query .= ' ORDER BY ' . $order;
         }
-        if ($limit) {
+        if($limit) {
             $query .= ' LIMIT ' . $limit;
         }
         $this->sql = $query;
         $this->result = mysqli_query($this->mysql, $query);
-        if (mysqli_error($this->mysql) != '') {
+        if(mysqli_error($this->mysql) != '') {
             $this->_error(mysqli_error($this->mysql));
             $this->result = null;
+
             return false;
         } else {
             return $this;
@@ -506,9 +545,9 @@ class Database
      * @throws DatabaseException
      * @throws Exception
      */
-    function delete($table, $where = array(), $where_mode = "AND", $limit = false, $order = false)
+    function delete($table, $where = [], $where_mode = "AND", $limit = false, $order = false)
     {
-        if (empty($where)) {
+        if(empty($where)) {
             throw new DatabaseException('Where clause is empty for update method');
         }
 
@@ -516,21 +555,22 @@ class Database
         $this->result = null;
         $this->sql = null;
         $query = 'DELETE FROM `' . $table . '`';
-        if (!empty($where)) {
+        if(!empty($where)) {
             $query .= ' WHERE' . $this->process_where($where, $where_mode);
         }
-        if ($order) {
+        if($order) {
             $query .= ' ORDER BY ' . $order;
         }
-        if ($limit) {
+        if($limit) {
             $query .= ' LIMIT ' . $limit;
         }
         $this->sql = $query;
 
         $this->result = mysqli_query($this->mysql, $query);
-        if (mysqli_error($this->mysql) != '') {
+        if(mysqli_error($this->mysql) != '') {
             $this->_error(mysqli_error($this->mysql));
             $this->result = null;
+
             return false;
         } else {
             return $this;
@@ -565,7 +605,7 @@ class Database
      */
     public function escape($str)
     {
-        return mysqli_real_escape_string($this->mysql, $str);
+        return $this->mysql->real_escape_string($str);
     }
 
     /**
@@ -575,7 +615,7 @@ class Database
      */
     public function error()
     {
-        return mysqli_error($this->mysql);
+        return $this->mysql->error;
     }
 
     /**
@@ -586,11 +626,12 @@ class Database
      */
     private function clean($str)
     {
-        if (is_string($str)) {
-            if (!mb_detect_encoding($str, 'UTF-8', true)) {
+        if(is_string($str)) {
+            if(!mb_detect_encoding($str, 'UTF-8', true)) {
                 $str = utf8_encode($str);
             }
         }
+
         return $str;
     }
 
@@ -603,70 +644,74 @@ class Database
      */
     public function is_serialized($data, &$result = null)
     {
-
-        if (!is_string($data)) {
+        if(!is_string($data)) {
             return false;
         }
 
         $data = trim($data);
 
-        if (empty($data)) {
+        if(empty($data)) {
             return false;
         }
-        if ($data === 'b:0;') {
+        if($data === 'b:0;') {
             $result = false;
+
             return true;
         }
-        if ($data === 'b:1;') {
+        if($data === 'b:1;') {
             $result = true;
+
             return true;
         }
-        if ($data === 'N;') {
+        if($data === 'N;') {
             $result = null;
+
             return true;
         }
-        if (strlen($data) < 4) {
+        if(strlen($data) < 4) {
             return false;
         }
-        if ($data[1] !== ':') {
+        if($data[1] !== ':') {
             return false;
         }
         $lastc = substr($data, -1);
-        if (';' !== $lastc && '}' !== $lastc) {
+        if(';' !== $lastc && '}' !== $lastc) {
             return false;
         }
 
         $token = $data[0];
-        switch ($token) {
+        switch($token) {
             case 's' :
-                if ('"' !== substr($data, -2, 1)) {
+                if('"' !== substr($data, -2, 1)) {
                     return false;
                 }
                 break;
             case 'a' :
             case 'O' :
-                if (!preg_match("/^{$token}:[0-9]+:/s", $data)) {
+                if(!preg_match("/^{$token}:[0-9]+:/s", $data)) {
                     return false;
                 }
                 break;
             case 'b' :
             case 'i' :
             case 'd' :
-                if (!preg_match("/^{$token}:[0-9.E-]+;/", $data)) {
+                if(!preg_match("/^{$token}:[0-9.E-]+;/", $data)) {
                     return false;
                 }
         }
 
         try {
-            if (($res = @unserialize($data)) !== false) {
+            if(($res = @unserialize($data)) !== false) {
                 $result = $res;
+
                 return true;
             }
-            if (($res = @unserialize(utf8_encode($data))) !== false) {
+            if(($res = @unserialize(utf8_encode($data))) !== false) {
                 $result = $res;
+
                 return true;
             }
-        } catch (Exception $e) {
+        } catch(Exception $exception) {
             return false;
         }
 
@@ -680,11 +725,13 @@ class Database
      * @param mysqli_result $res
      * @param int $row
      * @param int $field
+     * @return mixed
      */
     private function mysqli_result($res, $row, $field = 0)
     {
         $res->data_seek($row);
         $datarow = $res->fetch_array();
+
         return $datarow[$field];
     }
 
