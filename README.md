@@ -38,7 +38,7 @@ Example:
 $db->select('candy', ['sweet' => 1, 'spicy' => 0], 10, 'amount DESC');
 ```
 
-```
+```php
 // get the ids 1, 2,5,9  from products
 $db->select('products', ['id' => 'in (1,2,5,9)'], false, false,'OR');
 ```
